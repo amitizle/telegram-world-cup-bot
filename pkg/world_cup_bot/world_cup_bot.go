@@ -61,6 +61,8 @@ func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *red
 	fmt.Printf("IkoPico")
 	fmt.Printf("Command", update.Message.Command())
 	switch update.Message.Command() {
+	case "tomorrow":
+		tomorrowsMatches(update, bot, redisClient)
 	case "today":
 		todaysMatches(update, bot, redisClient)
 	case "current":

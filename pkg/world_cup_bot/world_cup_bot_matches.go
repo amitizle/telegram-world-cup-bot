@@ -30,6 +30,11 @@ type Team struct {
 }
 
 // TODO configurable today_matches
+func tomorrowsMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
+	getMatches(update, bot, redisClient, "tomorrow_matches")
+}
+
+// TODO configurable today_matches
 func todaysMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
 	getMatches(update, bot, redisClient, "today_matches")
 }
