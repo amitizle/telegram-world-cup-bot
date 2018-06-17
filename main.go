@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"github.com/amitizle/telegram-world-cup-bot/pkg/world_cup_api"
 	"github.com/amitizle/telegram-world-cup-bot/pkg/world_cup_bot"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -19,7 +20,7 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "world-cup-bot",
 	Short: "Pff world cup bot for Telegram",
-	Run:   runBot,
+	Run:   run,
 }
 
 func Execute() {
@@ -35,6 +36,8 @@ func init() {
 	viper.SetDefault("port", 8080)
 	viper.SetDefault("host", "127.0.0.1")
 	viper.SetDefault("telegram_token", "")
+	viper.SetDefault("redis_host", "127.0.0.1")
+	viper.SetDefault("redis_port", 6379)
 }
 
 func initConfig() {
@@ -53,9 +56,22 @@ func initConfig() {
 	}
 }
 
+func run(cmd *cobra.Command, args []string) {
+	runPoller(cmd, args)
+	runBot(cmd, args)
+}
+
+func runPoller(cmd *cobra.Command, args []string) {
+	redisHost := viper.GetString("redis_host")
+	redisPort := viper.GetInt("redis_port")
+	world_cup_api.StartPolling(redisHost, redisPort)
+}
+
 func runBot(cmd *cobra.Command, args []string) {
 	token := viper.GetString("telegram_token")
-	err := world_cup_bot.Start(viper.GetString("host"), viper.GetInt("port"), token)
+	redisHost := viper.GetString("redis_host")
+	redisPort := viper.GetInt("redis_port")
+	err := world_cup_bot.Start(viper.GetString("host"), viper.GetInt("port"), token, redisHost, redisPort)
 	if err != nil {
 		log.Fatalf("faild to start bot: %v", err)
 		os.Exit(1)

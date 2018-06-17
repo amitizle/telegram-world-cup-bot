@@ -3,19 +3,23 @@ package world_cup_bot
 import (
 	"errors"
 	"fmt"
-	"github.com/amitizle/telegram-world-cup-bot/internal/http_client"
+	"github.com/go-redis/redis"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	// "net/http"
 )
 
-func Start(host string, port int, telegramToken string) error {
+func Start(host string, port int, telegramToken string, redisHost string, redisPort int) error {
 	if telegramToken == "" {
 		return errors.New("Bot token is missing")
 	}
-	httpClient, err := world_cup_http_client.New("")
+	redisClient := redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%d", redisHost, redisPort),
+		DB:   0,
+	})
+	_, err := redisClient.Ping().Result()
 	if err != nil {
-		return err
+		log.Fatalf("could not connect to Redis: %v", err)
 	}
 	botAddr := fmt.Sprintf("%s:%d", host, port)
 	log.Printf("Starting bot at %s", botAddr)
@@ -29,18 +33,18 @@ func Start(host string, port int, telegramToken string) error {
 	u.Timeout = 60
 	updates, err := bot.GetUpdatesChan(u)
 
-	handleUpdates(updates, bot, httpClient)
+	handleUpdates(updates, bot, redisClient)
 
 	return nil
 }
 
-func handleUpdates(updateChannel tgbotapi.UpdatesChannel, bot *tgbotapi.BotAPI, httpClient *world_cup_http_client.HTTPClient) {
+func handleUpdates(updateChannel tgbotapi.UpdatesChannel, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
 	for update := range updateChannel {
-		handleUpdate(update, bot, httpClient)
+		handleUpdate(update, bot, redisClient)
 	}
 }
 
-func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, httpClient *world_cup_http_client.HTTPClient) {
+func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
 	fmt.Println("Message", update.Message)
 	if update.Message == nil {
 		return
@@ -49,7 +53,9 @@ func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, httpClient *worl
 	fmt.Printf("Command", update.Message.Command())
 	switch update.Message.Command() {
 	case "today":
-		todaysMatches(update, bot, httpClient)
+		todaysMatches(update, bot, redisClient)
+	case "current":
+		currentMatches(update, bot, redisClient)
 	case "version":
 		botVersion(update, bot)
 	default:

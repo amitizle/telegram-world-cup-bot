@@ -3,7 +3,7 @@ package world_cup_bot
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/amitizle/telegram-world-cup-bot/internal/http_client"
+	"github.com/go-redis/redis"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 )
@@ -29,8 +29,16 @@ type Team struct {
 	Goals       int    `json:"goals"`
 }
 
-func todaysMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, httpClient *world_cup_http_client.HTTPClient) {
-	response, err := httpClient.Get("/matches/today", map[string]string{})
+func todaysMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
+	getMatches(update, bot, redisClient, "today_matches")
+}
+
+func currentMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
+	getMatches(update, bot, redisClient, "current_matches")
+}
+
+func getMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client, getType string) {
+	matchesStr, err := redisClient.Get(getType).Result()
 	if err != nil {
 		log.Printf("Error: %v", err)
 		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "whoops, something went terribly wrong")
@@ -39,7 +47,7 @@ func todaysMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, httpClient *wor
 		return
 	}
 	matches := make([]Match, 0)
-	json.Unmarshal(response.Body, &matches)
+	json.Unmarshal([]byte(matchesStr), &matches)
 	fmt.Println("Matches", matches)
 	result := ""
 	for _, match := range matches {
