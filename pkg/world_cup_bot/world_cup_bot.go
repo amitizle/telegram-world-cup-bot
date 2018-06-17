@@ -6,10 +6,10 @@ import (
 	"github.com/go-redis/redis"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
-	// "net/http"
+	"net/http"
 )
 
-func Start(host string, port int, telegramToken string, redisHost string, redisPort int) error {
+func Start(webhookAddr string, host string, port int, telegramToken string, redisHost string, redisPort int) error {
 	if telegramToken == "" {
 		return errors.New("Bot token is missing")
 	}
@@ -28,13 +28,22 @@ func Start(host string, port int, telegramToken string, redisHost string, redisP
 		return err
 	}
 	bot.Debug = true
+	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookAddr))
+	if err != nil {
+		return err
+	}
+	webhookInfo, err := bot.GetWebhookInfo()
+	if err != nil {
+		return err
+	}
+	if webhookInfo.LastErrorDate != 0 {
+		log.Printf("[Telegram callback failed]%s", webhookInfo.LastErrorMessage)
+	}
+	updates := bot.ListenForWebhook("/")
+	go http.ListenAndServe(botAddr, nil)
 	log.Printf("Authorized on account %s", bot.Self.UserName)
-	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
-	updates, err := bot.GetUpdatesChan(u)
 
 	handleUpdates(updates, bot, redisClient)
-
 	return nil
 }
 

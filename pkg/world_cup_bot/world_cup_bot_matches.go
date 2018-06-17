@@ -29,10 +29,12 @@ type Team struct {
 	Goals       int    `json:"goals"`
 }
 
+// TODO configurable today_matches
 func todaysMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
 	getMatches(update, bot, redisClient, "today_matches")
 }
 
+// TODO configurable current_matches
 func currentMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis.Client) {
 	getMatches(update, bot, redisClient, "current_matches")
 }
@@ -48,7 +50,12 @@ func getMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis
 	}
 	matches := make([]Match, 0)
 	json.Unmarshal([]byte(matchesStr), &matches)
-	fmt.Println("Matches", matches)
+	if len(matches) == 0 {
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "No matches found")
+		msg.ReplyToMessageID = update.Message.MessageID
+		bot.Send(msg)
+		return
+	}
 	result := ""
 	for _, match := range matches {
 		result += fmt.Sprintf(`%s (%d) - (%d) %s, %s

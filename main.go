@@ -33,8 +33,8 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 	rootCmd.PersistentFlags().StringVarP(&configFile, "config", "c", path.Join(defaultConfigPath, defaultConfigFilename), "full path to config file")
-	viper.SetDefault("port", 8080)
-	viper.SetDefault("host", "127.0.0.1")
+	viper.SetDefault("port", 9988)
+	viper.SetDefault("host", "0.0.0.0")
 	viper.SetDefault("telegram_token", "")
 	viper.SetDefault("redis_host", "127.0.0.1")
 	viper.SetDefault("redis_port", 6379)
@@ -71,7 +71,10 @@ func runBot(cmd *cobra.Command, args []string) {
 	token := viper.GetString("telegram_token")
 	redisHost := viper.GetString("redis_host")
 	redisPort := viper.GetInt("redis_port")
-	err := world_cup_bot.Start(viper.GetString("host"), viper.GetInt("port"), token, redisHost, redisPort)
+	localHost := viper.GetString("host")
+	localPort := viper.GetInt("port")
+	webhookAddr := viper.GetString("webhook_address")
+	err := world_cup_bot.Start(webhookAddr, localHost, localPort, token, redisHost, redisPort)
 	if err != nil {
 		log.Fatalf("faild to start bot: %v", err)
 		os.Exit(1)
