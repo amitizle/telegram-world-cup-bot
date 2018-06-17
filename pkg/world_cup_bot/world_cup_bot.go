@@ -9,10 +9,6 @@ import (
 	// "net/http"
 )
 
-// var (
-// 	httpClient *world_cup_http_client.HTTPClient
-// )
-
 func Start(host string, port int, telegramToken string) error {
 	if telegramToken == "" {
 		return errors.New("Bot token is missing")
@@ -49,9 +45,13 @@ func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, httpClient *worl
 	if update.Message == nil {
 		return
 	}
+	fmt.Printf("IkoPico")
+	fmt.Printf("Command", update.Message.Command())
 	switch update.Message.Command() {
 	case "today":
 		todaysMatches(update, bot, httpClient)
+	case "version":
+		botVersion(update, bot)
 	default:
 		log.Printf("No handler for %v", update.Message)
 	}
