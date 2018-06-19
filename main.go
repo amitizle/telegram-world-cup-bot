@@ -38,6 +38,8 @@ func init() {
 	viper.SetDefault("telegram_token", "")
 	viper.SetDefault("redis_host", "127.0.0.1")
 	viper.SetDefault("redis_port", 6379)
+	viper.SetDefault("timezone", "UTC")
+	viper.SetDefault("timezone_offset_hours", 0)
 }
 
 func initConfig() {

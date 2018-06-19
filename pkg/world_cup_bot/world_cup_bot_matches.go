@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/spf13/viper"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
+	"time"
 )
 
 type Match struct {
@@ -63,12 +65,25 @@ func getMatches(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *redis
 	}
 	result := ""
 	for _, match := range matches {
+		datetime := formatTime(match.Datetime, "15:04 MST")
 		result += fmt.Sprintf(`%s (%d) - (%d) %s, %s
 Match time: %s
 
-`, match.HomeTeam.Country, match.HomeTeam.Goals, match.AwayTeam.Goals, match.AwayTeam.Country, match.Time, match.Datetime)
+`, match.HomeTeam.Country, match.HomeTeam.Goals, match.AwayTeam.Goals, match.AwayTeam.Country, match.Time, datetime)
 	}
 	msg := tgbotapi.NewMessage(update.Message.Chat.ID, result)
 	msg.ReplyToMessageID = update.Message.MessageID
 	bot.Send(msg)
+}
+
+func formatTime(iso8601Time string, format string) string {
+	timezone := viper.GetString("timezone")
+	timezoneOffsetHours := viper.GetInt("timezone_offset_hours")
+	zone := time.FixedZone(timezone, int((time.Duration(timezoneOffsetHours) * time.Hour).Seconds()))
+	t, err := time.Parse(time.RFC3339, iso8601Time)
+	if err != nil {
+		log.Printf("Error while parsing time: %v", err)
+		return iso8601Time // TODO handle it somehow nicer
+	}
+	return t.In(zone).Format(format)
 }

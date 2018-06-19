@@ -1,2 +1,4 @@
 ---
 webhook_address: "https://blabla.ngrok.io"
+timezone: "Israel Daylight Time"
+timezone_offset_hours: 2
