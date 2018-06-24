@@ -28,7 +28,7 @@ func Start(webhookAddr string, host string, port int, telegramToken string, redi
 	if err != nil {
 		return err
 	}
-	bot.Debug = true
+	bot.Debug = false
 	_, err = bot.SetWebhook(tgbotapi.NewWebhook(webhookAddr))
 	if err != nil {
 		return err
@@ -61,8 +61,6 @@ func handleUpdate(update tgbotapi.Update, bot *tgbotapi.BotAPI, redisClient *red
 	if update.Message == nil {
 		return
 	}
-	fmt.Printf("IkoPico")
-	fmt.Printf("Command", update.Message.Command())
 	switch update.Message.Command() {
 	case "tomorrow":
 		tomorrowsMatches(update, bot, redisClient)
