@@ -1,4 +1,6 @@
 ---
-webhook_address: "https://blabla.ngrok.io"
+webhook_address: "https://a1b2c3.ngrok.io"
 timezone: "Israel Daylight Time"
 timezone_offset_hours: 2
+telegram_token: "123234123341235324"
+redis_pubsub_channel: "my_channel"

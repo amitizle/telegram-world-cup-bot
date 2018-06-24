@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/go-redis/redis"
+	"github.com/spf13/viper"
 	"gopkg.in/telegram-bot-api.v4"
 	"log"
 	"net/http"
@@ -43,6 +44,8 @@ func Start(webhookAddr string, host string, port int, telegramToken string, redi
 	go http.ListenAndServe(botAddr, nil)
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
+	redisPubSubChannel := viper.GetString("redis_pubsub_channel")
+	subscribeToEvents(bot, redisClient, redisPubSubChannel)
 	handleUpdates(updates, bot, redisClient)
 	return nil
 }

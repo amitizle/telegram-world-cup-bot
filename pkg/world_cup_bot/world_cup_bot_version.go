@@ -5,7 +5,7 @@ import (
 )
 
 var (
-	version = "0.2"
+	version = "0.3"
 )
 
 func botVersion(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
